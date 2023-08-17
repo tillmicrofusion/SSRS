@@ -1,0 +1,203 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<SharedDataSet xmlns="http://schemas.microsoft.com/sqlserver/reporting/2010/01/shareddatasetdefinition" xmlns:rd="http://schemas.microsoft.com/SQLServer/reporting/reportdesigner">
+  <Description />
+  <DataSet Name="type">
+    <Query>
+      <DataSourceReference>BPM</DataSourceReference>
+      <DataSetParameters>
+        <DataSetParameter Name="@statusAll">
+          <ReadOnly>false</ReadOnly>
+          <Nullable>false</Nullable>
+          <OmitFromQuery>false</OmitFromQuery>
+          <rd:DbType>Object</rd:DbType>
+        </DataSetParameter>
+        <DataSetParameter Name="@STDate">
+          <ReadOnly>false</ReadOnly>
+          <Nullable>true</Nullable>
+          <OmitFromQuery>false</OmitFromQuery>
+        </DataSetParameter>
+        <DataSetParameter Name="@EDDate">
+          <ReadOnly>false</ReadOnly>
+          <Nullable>true</Nullable>
+          <OmitFromQuery>false</OmitFromQuery>
+        </DataSetParameter>
+        <DataSetParameter Name="@strPlatform">
+          <ReadOnly>false</ReadOnly>
+          <Nullable>false</Nullable>
+          <OmitFromQuery>false</OmitFromQuery>
+          <rd:DbType>Object</rd:DbType>
+        </DataSetParameter>
+      </DataSetParameters>
+      <CommandText>SELECT distinct 
+CASE IT3.ddlPlatform WHEN 'BPM' THEN 'BPM' WHEN 'netsuite' THEN 'Netsuite' WHEN 'salesforce' THEN 'Salesforce' WHEN 'zendesk' THEN 'Zendesk' WHEN 'other' THEN 'Other' ELSE IT3.ddlPlatform END as '需求平台'
+,CASE IT3.ddlType WHEN 'bug' THEN 'Bug' WHEN 'newRequirement' THEN 'New Requirement' WHEN 'optimization' THEN 'Optimization' WHEN 'dataAdjustment' THEN 'Data Adjustment' ELSE IT3.ddlType END as '需求類型'
+,IT3.formSerialNumber
+,IT5.dtDate
+,MAX(convert(datetime, W.completedTime, 121)) as CompletedTime
+FROM IT_003 AS IT3
+INNER JOIN ProcessInstance AS PS ON PS.serialNumber = IT3.processSerialNumber 
+INNER JOIN zCustomValue AS CV ON CV.zDefinitionId = 'ProcessInstance' AND PS.currentState = CV.zValue
+
+LEFT JOIN IT_004 AS IT4 ON IT4.txtApplicantSN = IT3.txtSerialNumber
+LEFT JOIN ProcessInstance AS PS4 ON PS4.serialNumber = IT4.processSerialNumber
+LEFT JOIN zCustomValue AS CV4 ON CV4.zDefinitionId = 'ProcessInstance' AND PS4.currentState = CV4.zValue
+
+LEFT JOIN IT_005_gridDev AS IT5G ON IT5G.DevSN = IT4.txtSerialNumber
+LEFT JOIN IT_005 AS IT5 ON IT5.txtSerialNumber = IT5G.formSerialNumber
+LEFT JOIN ProcessInstance AS PS5 ON PS5.serialNumber = IT5.processSerialNumber
+LEFT JOIN zCustomValue AS CV5 ON CV5.zDefinitionId = 'ProcessInstance' AND PS5.currentState = CV5.zValue
+
+INNER JOIN LocalRelevantData L ON PS.contextOID = L.containerOID
+INNER JOIN WorkItem W ON PS.contextOID = W.contextOID
+
+WHERE          (CV.zFieldName = 'currentState') --AND (PS.currentState &lt;&gt; 4)
+and IT3.txtSerialNumber not in
+(SELECT IT3.txtSerialNumber
+FROM IT_003 AS IT3
+INNER JOIN ProcessInstance AS PS ON PS.serialNumber = IT3.processSerialNumber 
+INNER JOIN zCustomValue AS CV ON CV.zDefinitionId = 'ProcessInstance' AND PS.currentState = CV.zValue
+INNER JOIN IT_004_gridApplicant AS IT4G ON IT4G.ApplicantSN = IT3.txtSerialNumber
+WHERE (CV.zFieldName = 'currentState')
+AND IT4G.formSerialNumber is not NULL
+)
+
+--AND CV.zValue IN (@status)
+AND CASE
+WHEN (CV.zText='已撤銷' OR CV5.zText = '已撤銷' OR CV4.zText = '已撤銷') THEN 'Refuse' 
+WHEN (CV.zText='已中止' OR CV5.zText = '已中止' OR CV4.zText = '已中止') THEN 'Aborted' 
+WHEN (CV.zText !='已完成' OR CV.zText='已撤銷' or CV.zText='已中止') THEN 'New' 
+WHEN (CV.zText='已完成' AND (CV5.zText = '已完成')) THEN 'Done' 
+ELSE 'In Process'
+END IN (@statusAll)
+AND
+(
+(convert(datetime, W.completedTime, 121) &gt;= @STDate AND convert(datetime, W.completedTime, 121) &lt;= @EDDate)
+OR
+(convert(datetime, IT5.dtDate, 121) &gt;= @STDate AND convert(datetime, IT5.dtDate, 121) &lt;= @EDDate)
+)
+AND IT3.ddlPlatform IN (@strPlatform)
+GROUP BY   IT3.ddlPlatform, IT3.ddlType,IT3.formSerialNumber,IT5.dtDate
+
+UNION
+
+SELECT distinct 
+CASE IT3.ddlPlatform WHEN 'BPM' THEN 'BPM' WHEN 'netsuite' THEN 'Netsuite' WHEN 'salesforce' THEN 'Salesforce' WHEN 'zendesk' THEN 'Zendesk' WHEN 'other' THEN 'Other' ELSE IT3.ddlPlatform END as '需求平台'
+,CASE IT3.ddlType WHEN 'bug' THEN 'Bug' WHEN 'newRequirement' THEN 'New Requirement' WHEN 'optimization' THEN 'Optimization' WHEN 'dataAdjustment' THEN 'Data Adjustment' ELSE IT3.ddlType END as '需求類型'
+--,COUNT(IT3.formSerialNumber) AS 'Count'
+,IT3.formSerialNumber
+,IT5.dtDate
+,MAX(convert(datetime, W.completedTime, 121)) as CompletedTime
+FROM IT_003 AS IT3
+INNER JOIN ProcessInstance AS PS ON PS.serialNumber = IT3.processSerialNumber 
+INNER JOIN zCustomValue AS CV ON CV.zDefinitionId = 'ProcessInstance' AND PS.currentState = CV.zValue
+
+LEFT JOIN IT_004_gridApplicant AS IT4G ON IT4G.ApplicantSN = IT3.txtSerialNumber
+LEFT JOIN IT_004 AS IT4 ON IT4.txtSerialNumber = IT4G.formSerialNumber
+LEFT JOIN ProcessInstance AS PS4 ON PS4.serialNumber = IT4.processSerialNumber
+LEFT JOIN zCustomValue AS CV4 ON CV4.zDefinitionId = 'ProcessInstance' AND PS4.currentState = CV4.zValue
+
+LEFT JOIN IT_005_gridDev AS IT5G ON IT5G.DevSN = IT4G.formSerialNumber
+LEFT JOIN IT_005 AS IT5 ON IT5.txtSerialNumber = IT5G.formSerialNumber
+LEFT JOIN ProcessInstance AS PS5 ON PS5.serialNumber = IT5.processSerialNumber
+LEFT JOIN zCustomValue AS CV5 ON CV5.zDefinitionId = 'ProcessInstance' AND PS5.currentState = CV5.zValue
+
+INNER JOIN LocalRelevantData L ON PS.contextOID = L.containerOID
+INNER JOIN WorkItem W ON PS.contextOID = W.contextOID
+
+WHERE          (CV.zFieldName = 'currentState')
+and IT3.txtSerialNumber not in
+('NLTW-IT-003-2023020019',
+'NLTW-IT-003-2023010014',
+'NLTW-IT-003-2022120028',
+'NLTW-IT-003-2022120022',
+'NLTW-IT-003-2022120021',
+'MFTW-IT-003-2023010002',
+'MFTW-IT-003-2023010001',
+'NLTW-IT-003-2023020008',
+'NLTW-IT-003-2023020007',
+'NLTW-IT-003-2023010017',
+'NLTW-IT-003-2022120032',
+'NLTW-IT-003-2022120030',
+'NLTW-IT-003-2022120029',
+'NLTW-IT-003-2022120027',
+'NLTW-IT-003-2022120024',
+'NLTW-IT-003-2022120020',
+'NLTW-IT-003-2022120019',
+'NLTW-IT-003-2022120018',
+'NLTW-IT-003-2022120016',
+'NLTW-IT-003-2022120015',
+'NLTW-IT-003-2022120008',
+'NLTW-IT-003-2022120003',
+'NLTW-IT-003-2022120001',
+'MFTW-IT-003-2022120008',
+'MFTW-IT-003-2022120005',
+'NLTW-IT-003-2023020018',
+'NLTW-IT-003-2023020015',
+'NLTW-IT-003-2023020010',
+'NLTW-IT-003-2023020009',
+'NLTW-IT-003-2023010021',
+'NLTW-IT-003-2023010020',
+'NLTW-IT-003-2023010004',
+'NLTW-IT-003-2023010003',
+'NLTW-IT-003-2023010002',
+'NLTW-IT-003-2023010001',
+'NLTW-IT-003-2022120038',
+'NLTW-IT-003-2022120037',
+'NLTW-IT-003-2022120036',
+'NLTW-IT-003-2022120035',
+'NLTW-IT-003-2022120033',
+'NLTW-IT-003-2022120017',
+'NLTW-IT-003-2022120013',
+'NLHK-IT-003-2023010001',
+'MFTW-IT-003-2022120007',
+'MFTW-IT-003-2022120006',
+'MFTW-IT-003-2022120002',
+'MFTW-IT-003-2022120001',
+'NLTW-IT-003-2023010013',
+'NLTW-IT-003-2022120026',
+'NLTW-IT-003-2022120011',
+'NLTW-IT-003-2022120005'
+)
+--AND CV.zValue IN (@status)
+AND CASE
+WHEN (CV.zText='已撤銷' OR CV5.zText = '已撤銷' OR CV4.zText = '已撤銷') THEN 'Refuse' 
+WHEN (CV.zText='已中止' OR CV5.zText = '已中止' OR CV4.zText = '已中止') THEN 'Aborted' 
+WHEN (CV.zText !='已完成' OR CV.zText='已撤銷' or CV.zText='已中止') THEN 'New' 
+WHEN (CV.zText='已完成' AND (CV5.zText = '已完成')) THEN 'Done' 
+ELSE 'In Process'
+END IN (@statusAll)
+AND
+(
+(convert(datetime, W.completedTime, 121) &gt;= @STDate AND convert(datetime, W.completedTime, 121) &lt;= @EDDate)
+OR
+(convert(datetime, IT5.dtDate, 121) &gt;= @STDate AND convert(datetime, IT5.dtDate, 121) &lt;= @EDDate)
+)
+
+AND IT3.ddlPlatform IN (@strPlatform)
+GROUP BY   IT3.ddlPlatform, IT3.ddlType,IT3.formSerialNumber,IT5.dtDate
+ORDER BY   '需求平台' DESC</CommandText>
+    </Query>
+    <Fields>
+      <Field Name="需求平台">
+        <DataField>需求平台</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="需求類型">
+        <DataField>需求類型</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="formSerialNumber">
+        <DataField>formSerialNumber</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="dtDate">
+        <DataField>dtDate</DataField>
+        <rd:TypeName>System.DateTime</rd:TypeName>
+      </Field>
+      <Field Name="CompletedTime">
+        <DataField>CompletedTime</DataField>
+        <rd:TypeName>System.DateTime</rd:TypeName>
+      </Field>
+    </Fields>
+  </DataSet>
+</SharedDataSet>

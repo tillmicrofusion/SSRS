@@ -1,0 +1,149 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<SharedDataSet xmlns="http://schemas.microsoft.com/sqlserver/reporting/2010/01/shareddatasetdefinition" xmlns:rd="http://schemas.microsoft.com/SQLServer/reporting/reportdesigner">
+  <DataSet Name="DataSet1">
+    <Query>
+      <DataSourceReference>BPM</DataSourceReference>
+      <DataSetParameters>
+        <DataSetParameter Name="@STDate">
+          <ReadOnly>false</ReadOnly>
+          <Nullable>false</Nullable>
+          <OmitFromQuery>false</OmitFromQuery>
+          <rd:DbType>Object</rd:DbType>
+        </DataSetParameter>
+        <DataSetParameter Name="@EDDate">
+          <ReadOnly>false</ReadOnly>
+          <Nullable>false</Nullable>
+          <OmitFromQuery>false</OmitFromQuery>
+          <rd:DbType>Object</rd:DbType>
+        </DataSetParameter>
+        <DataSetParameter Name="@status">
+          <ReadOnly>false</ReadOnly>
+          <Nullable>true</Nullable>
+          <OmitFromQuery>false</OmitFromQuery>
+          <rd:DbType>Object</rd:DbType>
+        </DataSetParameter>
+      </DataSetParameters>
+      <CommandText>SELECT
+txtSerialNumber
+,dptPRNumber
+,txtPODate
+,txtVendor
+,ddlCurrency
+,productname
+,spec
+,qty
+,FORMAT(TRY_CAST(REPLACE(price, ',', '') AS decimal(18, 6)), '#,0.######') AS price
+,FORMAT(TRY_CAST(REPLACE(amount, ',', '') AS decimal(18, 6)), '#,0.######') AS amount
+,FORMAT(TRY_CAST(REPLACE(txtTaxes, ',', '') AS decimal(18, 6)), '#,0.######') AS txtTaxes
+,FORMAT(TRY_CAST(REPLACE(txtTotal, ',', '') AS decimal(18, 6)), '#,0.######') AS txtTotal
+,FORMAT(TRY_CAST(REPLACE(txtProjectPrice, ',', '') AS decimal(18, 6)), '#,0.######') AS txtProjectPrice
+--,CASE rdoType WHEN 'funds' THEN '資本支出' ELSE '費用支出' END as '支出類別'
+FROM PO_General PO
+INNER JOIN PO_General_grdPOItem POg On POg.formSerialNumber = PO.formSerialNumber
+INNER JOIN ProcessInstance AS PS ON PS.serialNumber = PO.processSerialNumber 
+INNER JOIN zCustomValue AS CV ON CV.zDefinitionId = 'ProcessInstance' AND PS.currentState = CV.zValue
+WHERE (convert(datetime, txtPODate, 121) &gt;= @STDate AND convert(datetime, txtPODate, 121) &lt;= @EDDate)
+AND (CV.zFieldName = 'currentState') AND (CV.zValue IN (@status))
+UNION ALL
+SELECT
+txtSerialNumber
+,dptPRNumber
+,txtPODate
+--,txtVendor
+,txtVendorName as txtVendor
+,txtCurrency as ddlCurrency
+,productname
+,spec
+,qty
+,FORMAT(TRY_CAST(REPLACE(price, ',', '') AS decimal(18, 6)), '#,0.######') AS price
+,FORMAT(TRY_CAST(REPLACE(amount, ',', '') AS decimal(18, 6)), '#,0.######') AS amount
+,FORMAT(TRY_CAST(REPLACE(txtTaxes, ',', '') AS decimal(18, 6)), '#,0.######') AS txtTaxes
+,FORMAT(TRY_CAST(REPLACE(txtTotal, ',', '') AS decimal(18, 6)), '#,0.######') AS txtTotal
+,FORMAT(TRY_CAST(REPLACE(txtProjectPrice, ',', '') AS decimal(18, 6)), '#,0.######') AS txtProjectPrice
+--,CASE rdoType WHEN 'funds' THEN '資本支出' ELSE '費用支出' END as '支出類別'
+FROM PO_003 PO3
+INNER JOIN PO_003_grdPOItem PO3g On PO3g.formSerialNumber = PO3.formSerialNumber
+INNER JOIN ProcessInstance AS PS ON PS.serialNumber = PO3.processSerialNumber 
+INNER JOIN zCustomValue AS CV ON CV.zDefinitionId = 'ProcessInstance' AND PS.currentState = CV.zValue
+WHERE (convert(datetime, txtPODate, 121) &gt;= @STDate AND convert(datetime, txtPODate, 121) &lt;= @EDDate)
+AND (CV.zFieldName = 'currentState') AND (CV.zValue IN (@status))
+UNION ALL
+SELECT
+txtSerialNumber
+,dptPRNumber
+,txtPODate
+,txtVendor
+,ddlCurrency
+,productname
+,spec
+,qty
+,FORMAT(TRY_CAST(REPLACE(price, ',', '') AS decimal(18, 6)), '#,0.######') AS price
+,FORMAT(TRY_CAST(REPLACE(amount, ',', '') AS decimal(18, 6)), '#,0.######') AS amount
+,FORMAT(TRY_CAST(REPLACE(txtTaxes, ',', '') AS decimal(18, 6)), '#,0.######') AS txtTaxes
+,FORMAT(TRY_CAST(REPLACE(txtTotal, ',', '') AS decimal(18, 6)), '#,0.######') AS txtTotal
+,FORMAT(TRY_CAST(REPLACE(txtProjectPrice, ',', '') AS decimal(18, 6)), '#,0.######') AS txtProjectPrice
+--,CASE rdoType WHEN 'funds' THEN '資本支出' ELSE '費用支出' END as '支出類別'
+FROM PO_IT POIT
+INNER JOIN PO_IT_grdPOItem POITg On POITg.formSerialNumber = POIT.formSerialNumber
+INNER JOIN ProcessInstance AS PS ON PS.serialNumber = POIT.processSerialNumber 
+INNER JOIN zCustomValue AS CV ON CV.zDefinitionId = 'ProcessInstance' AND PS.currentState = CV.zValue
+WHERE (convert(datetime, txtPODate, 121) &gt;= @STDate AND convert(datetime, txtPODate, 121) &lt;= @EDDate)
+AND (CV.zFieldName = 'currentState') AND (CV.zValue IN (@status))
+Order by txtSerialNumber,dptPRNumber desc</CommandText>
+    </Query>
+    <Fields>
+      <Field Name="txtSerialNumber">
+        <DataField>txtSerialNumber</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="dptPRNumber">
+        <DataField>dptPRNumber</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="txtPODate">
+        <DataField>txtPODate</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="txtVendor">
+        <DataField>txtVendor</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="ddlCurrency">
+        <DataField>ddlCurrency</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="productname">
+        <DataField>productname</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="spec">
+        <DataField>spec</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="qty">
+        <DataField>qty</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="price">
+        <DataField>price</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="amount">
+        <DataField>amount</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="txtTaxes">
+        <DataField>txtTaxes</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="txtTotal">
+        <DataField>txtTotal</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="txtProjectPrice">
+        <DataField>txtProjectPrice</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+    </Fields>
+  </DataSet>
+</SharedDataSet>

@@ -1,0 +1,137 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<SharedDataSet xmlns="http://schemas.microsoft.com/sqlserver/reporting/2010/01/shareddatasetdefinition" xmlns:rd="http://schemas.microsoft.com/SQLServer/reporting/reportdesigner">
+  <DataSet Name="DataSet1">
+    <Query>
+      <DataSourceReference>BPM</DataSourceReference>
+      <DataSetParameters>
+        <DataSetParameter Name="@STDate">
+          <ReadOnly>false</ReadOnly>
+          <Nullable>false</Nullable>
+          <OmitFromQuery>false</OmitFromQuery>
+          <rd:DbType>Object</rd:DbType>
+        </DataSetParameter>
+        <DataSetParameter Name="@EDDate">
+          <ReadOnly>false</ReadOnly>
+          <Nullable>false</Nullable>
+          <OmitFromQuery>false</OmitFromQuery>
+          <rd:DbType>Object</rd:DbType>
+        </DataSetParameter>
+        <DataSetParameter Name="@strPlatform">
+          <ReadOnly>false</ReadOnly>
+          <Nullable>false</Nullable>
+          <OmitFromQuery>false</OmitFromQuery>
+          <rd:DbType>Object</rd:DbType>
+        </DataSetParameter>
+      </DataSetParameters>
+      <CommandText>SELECT 
+CASE IT4g.Platform WHEN 'BPM' THEN 'BPM' WHEN 'netsuite' THEN 'Netsuite' WHEN 'salesforce' THEN 'Salesforce' WHEN 'zendesk' THEN 'Zendesk' WHEN 'other' THEN 'Other' ELSE IT4g.Platform END as '驗收平台'
+,IT4.txtSerialNumber AS '驗收單號'
+,CASE CV.zValue WHEN '0' THEN 'Not Started' WHEN '1' THEN 'In Process' WHEN '2' THEN 'Paused' WHEN '3' THEN 'Completed' WHEN '4' THEN 'Refuse' WHEN '5' THEN 'Aborted' ELSE CV.zValue END as '驗收單狀態'
+	,W.createdTime
+	,W.completedTime
+	,P.serialNumber
+	,W.workItemName
+	,U.id + '-' + U.userName as Username
+FROM IT_004 AS IT4
+	INNER JOIN IT_004_gridApplicant AS IT4g ON IT4g.formSerialNumber = IT4.formSerialNumber
+	INNER JOIN ProcessInstance AS P ON P.serialNumber = IT4.processSerialNumber 
+	INNER JOIN zCustomValue AS CV ON CV.zDefinitionId = 'ProcessInstance' AND P.currentState = CV.zValue
+	INNER JOIN LocalRelevantData L ON L.containerOID = P.contextOID
+	INNER JOIN WorkItem W ON P.contextOID = W.contextOID
+	LEFT JOIN Users U ON U.OID = W.performerOID
+	INNER JOIN FormInstance F ON F.OID = L.valueOID
+	INNER JOIN 
+	(
+	SELECT 
+		MAX(convert(datetime, W.completedTime, 121)) as completedTime
+		,P.serialNumber
+	FROM ProcessInstance P
+		INNER JOIN LocalRelevantData L ON L.containerOID = P.contextOID
+		INNER JOIN WorkItem W ON W.contextOID = P.contextOID
+		LEFT JOIN Users U ON U.OID = W.performerOID
+		INNER JOIN FormInstance F ON F.OID = L.valueOID
+	WHERE U.id is not null AND W.workItemName not in ('電子郵件通知','通知開發負責人員','轉存表單')
+	group by P.serialNumber
+	) as Dt ON Dt.completedTime = W.completedTime
+WHERE (CV.zFieldName = 'currentState')
+and U.id is not null AND W.workItemName not in ('電子郵件通知','通知開發負責人員','轉存表單')
+and P.serialNumber not in
+	(
+	SELECT P.serialNumber 
+	FROM IT_004 AS IT4
+		INNER JOIN IT_004_gridApplicant AS IT4g ON IT4g.formSerialNumber = IT4.formSerialNumber
+		INNER JOIN ProcessInstance AS P ON P.serialNumber = IT4.processSerialNumber
+		INNER JOIN zCustomValue AS CV ON CV.zDefinitionId = 'ProcessInstance' AND P.currentState = CV.zValue
+		INNER JOIN LocalRelevantData L ON L.containerOID = P.contextOID
+		INNER JOIN WorkItem W ON W.contextOID = P.contextOID
+		INNER JOIN LocalToDoWorkItem W2 ON W2.workItemOID = W.OID
+		INNER JOIN Users U ON U.OID = W2.userOID
+		INNER JOIN FormInstance F ON F.OID = L.valueOID
+	WHERE (CV.zFieldName = 'currentState')
+	AND (convert(datetime, W2.createdTime, 121) &gt;= @STDate AND convert(datetime, W2.createdTime, 121) &lt;= @EDDate)
+	AND IT4g.Platform IN (@strPlatform)
+	)
+AND (convert(datetime, W.createdTime, 121) &gt;= @STDate AND convert(datetime, W.createdTime, 121) &lt;= @EDDate)
+AND IT4g.Platform IN (@strPlatform)
+
+UNION
+
+SELECT 
+CASE IT4g.Platform WHEN 'BPM' THEN 'BPM' WHEN 'netsuite' THEN 'Netsuite' WHEN 'salesforce' THEN 'Salesforce' WHEN 'zendesk' THEN 'Zendesk' WHEN 'other' THEN 'Other' ELSE IT4g.Platform END as '驗收平台'
+,IT4.txtSerialNumber AS '驗收單號'
+,CASE CV.zValue WHEN '0' THEN 'Not Started' WHEN '1' THEN 'In Process' WHEN '2' THEN 'Paused' WHEN '3' THEN 'Completed' WHEN '4' THEN 'Refuse' WHEN '5' THEN 'Aborted' ELSE CV.zValue END as '驗收單狀態'
+	,W2.createdTime
+	,W.completedTime
+	,P.serialNumber
+	,W.workItemName
+	,U.id + '-' + U.userName as Username
+FROM IT_004 AS IT4
+	INNER JOIN IT_004_gridApplicant AS IT4g ON IT4g.formSerialNumber = IT4.formSerialNumber
+	INNER JOIN ProcessInstance AS P ON P.serialNumber = IT4.processSerialNumber
+	INNER JOIN zCustomValue AS CV ON CV.zDefinitionId = 'ProcessInstance' AND P.currentState = CV.zValue
+	INNER JOIN LocalRelevantData L ON L.containerOID = P.contextOID
+	INNER JOIN WorkItem W ON W.contextOID = P.contextOID
+	INNER JOIN LocalToDoWorkItem W2 ON W2.workItemOID = W.OID
+	INNER JOIN Users U ON U.OID = W2.userOID
+	INNER JOIN FormInstance F ON F.OID = L.valueOID
+WHERE (CV.zFieldName = 'currentState')
+AND (convert(datetime, W2.createdTime, 121) &gt;= @STDate AND convert(datetime, W2.createdTime, 121) &lt;= @EDDate)
+AND IT4g.Platform IN (@strPlatform)
+ORDER BY P.serialNumber DESC</CommandText>
+    </Query>
+    <Fields>
+      <Field Name="驗收平台">
+        <DataField>驗收平台</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="驗收單號">
+        <DataField>驗收單號</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="驗收單狀態">
+        <DataField>驗收單狀態</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="createdTime">
+        <DataField>createdTime</DataField>
+        <rd:TypeName>System.DateTime</rd:TypeName>
+      </Field>
+      <Field Name="completedTime">
+        <DataField>completedTime</DataField>
+        <rd:TypeName>System.DateTime</rd:TypeName>
+      </Field>
+      <Field Name="serialNumber">
+        <DataField>serialNumber</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="workItemName">
+        <DataField>workItemName</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="Username">
+        <DataField>Username</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+    </Fields>
+  </DataSet>
+</SharedDataSet>

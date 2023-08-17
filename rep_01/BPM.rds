@@ -1,0 +1,8 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<RptDataSource xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" Name="BPM">
+  <ConnectionProperties>
+    <Extension>SQL</Extension>
+    <ConnectString>Data Source=10.0.3.86;Initial Catalog=BPM</ConnectString>
+  </ConnectionProperties>
+  <DataSourceID>8996d83c-60a0-4e79-96cb-417d9bc798ad</DataSourceID>
+</RptDataSource>

@@ -1,0 +1,31 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<SharedDataSet xmlns="http://schemas.microsoft.com/sqlserver/reporting/2010/01/shareddatasetdefinition" xmlns:rd="http://schemas.microsoft.com/SQLServer/reporting/reportdesigner">
+  <Description />
+  <DataSet Name="BPMDataSet">
+    <Query>
+      <DataSourceReference>BPM_197</DataSourceReference>
+      <CommandText>SELECT          IT3.ddlPlatform AS '需求平台', CV.zText AS '狀態', COUNT(*) AS 'Count'
+FROM              IT_003 AS IT3 INNER JOIN
+                            ProcessInstance AS PS ON PS.serialNumber = IT3.processSerialNumber INNER JOIN
+                            zCustomValue AS CV ON CV.zDefinitionId = 'ProcessInstance' AND PS.currentState = CV.zValue
+WHERE          (1 = 1) AND (CV.zFieldName = 'currentState') AND (PS.currentState &lt;&gt; 4) AND (IT3.txtApplyDate &gt;= '2022/12/01') AND 
+                            (IT3.txtApplyDate &lt;= '2023/12/31')
+GROUP BY   IT3.ddlPlatform, ROLLUP (CV.zText)
+ORDER BY   '需求平台' DESC</CommandText>
+    </Query>
+    <Fields>
+      <Field Name="需求平台">
+        <DataField>需求平台</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="狀態">
+        <DataField>狀態</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="Count">
+        <DataField>Count</DataField>
+        <rd:TypeName>System.Int32</rd:TypeName>
+      </Field>
+    </Fields>
+  </DataSet>
+</SharedDataSet>

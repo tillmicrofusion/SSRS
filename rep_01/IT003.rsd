@@ -1,0 +1,88 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<SharedDataSet xmlns="http://schemas.microsoft.com/sqlserver/reporting/2010/01/shareddatasetdefinition" xmlns:rd="http://schemas.microsoft.com/SQLServer/reporting/reportdesigner">
+  <Description />
+  <DataSet Name="IT003">
+    <Query>
+      <DataSourceReference>BPM</DataSourceReference>
+      <DataSetParameters>
+        <DataSetParameter Name="@status">
+          <ReadOnly>false</ReadOnly>
+          <Nullable>false</Nullable>
+          <OmitFromQuery>false</OmitFromQuery>
+          <rd:DbType>Object</rd:DbType>
+        </DataSetParameter>
+        <DataSetParameter Name="@STDate">
+          <ReadOnly>false</ReadOnly>
+          <Nullable>true</Nullable>
+          <OmitFromQuery>false</OmitFromQuery>
+          <rd:UserDefined>true</rd:UserDefined>
+        </DataSetParameter>
+        <DataSetParameter Name="@EDDate">
+          <ReadOnly>false</ReadOnly>
+          <Nullable>true</Nullable>
+          <OmitFromQuery>false</OmitFromQuery>
+          <rd:UserDefined>true</rd:UserDefined>
+        </DataSetParameter>
+      </DataSetParameters>
+      <CommandText>SELECT          CASE IT3.ddlPlatform WHEN 'BPM' THEN 'BPM' WHEN 'netsuite' THEN 'Netsuite' WHEN 'salesforce' THEN 'Salesforce'
+                             WHEN 'zendesk' THEN 'Zendesk' WHEN 'other' THEN 'Other' ELSE IT3.ddlPlatform END AS '需求平台', CV.zText, 
+                            CASE IT3.ddlType WHEN 'bug' THEN 'Bug' WHEN 'newRequirement' THEN 'New Requirement' WHEN 'optimization' THEN
+                             'Optimization' WHEN 'dataAdjustment' THEN 'Data Adjustment' ELSE IT3.ddlType END AS '需求類型', 
+                            U.userName AS '開發負責人員', IT3.txtApplyDate AS '申請日期', IT3.dtLaunchDate2 AS '預計上線日期', 
+                            IT3.dtLaunchDate3 AS '預計上線日期2', IT3.dblUser AS '填單人', IT3.txtName AS '需求名稱', 
+                            IT3.txtSerialNumber
+FROM              IT_003 AS IT3 INNER JOIN
+                            ProcessInstance AS PS ON PS.serialNumber = IT3.processSerialNumber INNER JOIN
+                            zCustomValue AS CV ON CV.zDefinitionId = 'ProcessInstance' AND PS.currentState = CV.zValue INNER JOIN
+                            Users AS U ON IT3.iptDeveloper = U.id
+WHERE          (1 = 1) 
+AND (CV.zFieldName = 'currentState') 
+AND (CV.zValue IN (@status)) 
+AND (CONVERT(datetime, IT3.txtApplyDate, 121) &gt;= @STDate) AND (CONVERT(datetime, IT3.txtApplyDate, 121) &lt;= @EDDate)
+
+ORDER BY   IT3.ddlPlatform, CV.zText DESC, '申請日期', IT3.txtSerialNumber, IT3.ddlType</CommandText>
+    </Query>
+    <Fields>
+      <Field Name="需求平台">
+        <DataField>需求平台</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="zText">
+        <DataField>zText</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="需求類型">
+        <DataField>需求類型</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="開發負責人員">
+        <DataField>開發負責人員</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="申請日期">
+        <DataField>申請日期</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="預計上線日期">
+        <DataField>預計上線日期</DataField>
+        <rd:TypeName>System.DateTime</rd:TypeName>
+      </Field>
+      <Field Name="預計上線日期2">
+        <DataField>預計上線日期2</DataField>
+        <rd:TypeName>System.DateTime</rd:TypeName>
+      </Field>
+      <Field Name="填單人">
+        <DataField>填單人</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="需求名稱">
+        <DataField>需求名稱</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="txtSerialNumber">
+        <DataField>txtSerialNumber</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+    </Fields>
+  </DataSet>
+</SharedDataSet>

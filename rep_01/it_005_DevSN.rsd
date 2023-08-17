@@ -1,0 +1,46 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<SharedDataSet xmlns="http://schemas.microsoft.com/sqlserver/reporting/2010/01/shareddatasetdefinition" xmlns:rd="http://schemas.microsoft.com/SQLServer/reporting/reportdesigner">
+  <Description />
+  <DataSet Name="it_005_DevSN">
+    <Query>
+      <DataSourceReference>BPM</DataSourceReference>
+      <DataSetParameters>
+        <DataSetParameter Name="@devSN">
+          <ReadOnly>false</ReadOnly>
+          <Nullable>true</Nullable>
+          <OmitFromQuery>false</OmitFromQuery>
+        </DataSetParameter>
+      </DataSetParameters>
+      <CommandText>SELECT          txtApplyDate, ddlPlatform, txtSerialNumber, txtDevSN, txtDevAbout, dblUser
+FROM              IT_005
+WHERE          ddlPlatform IN (@devSN)
+ORDER BY txtSerialNumber  DESC</CommandText>
+    </Query>
+    <Fields>
+      <Field Name="txtApplyDate">
+        <DataField>txtApplyDate</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="ddlPlatform">
+        <DataField>ddlPlatform</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="txtSerialNumber">
+        <DataField>txtSerialNumber</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="txtDevSN">
+        <DataField>txtDevSN</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="txtDevAbout">
+        <DataField>txtDevAbout</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="dblUser">
+        <DataField>dblUser</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+    </Fields>
+  </DataSet>
+</SharedDataSet>

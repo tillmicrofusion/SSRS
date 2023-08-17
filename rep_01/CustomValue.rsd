@@ -1,0 +1,34 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<SharedDataSet xmlns="http://schemas.microsoft.com/sqlserver/reporting/2010/01/shareddatasetdefinition" xmlns:rd="http://schemas.microsoft.com/SQLServer/reporting/reportdesigner">
+  <Description />
+  <DataSet Name="CustomValue">
+    <Query>
+      <DataSourceReference>BPM</DataSourceReference>
+      <CommandText>SELECT TOP (1000) [zDefinitionId]
+      ,[zFieldName]
+      ,[zValue]
+      ,[zText]
+  FROM [BPM].[dbo].[zCustomValue]
+  WHERE [zDefinitionId]='ProcessInstance'
+  AND [zFieldName] = 'currentState'</CommandText>
+    </Query>
+    <Fields>
+      <Field Name="zDefinitionId">
+        <DataField>zDefinitionId</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="zFieldName">
+        <DataField>zFieldName</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="zValue">
+        <DataField>zValue</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="zText">
+        <DataField>zText</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+    </Fields>
+  </DataSet>
+</SharedDataSet>

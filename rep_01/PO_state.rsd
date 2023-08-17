@@ -1,0 +1,83 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<SharedDataSet xmlns="http://schemas.microsoft.com/sqlserver/reporting/2010/01/shareddatasetdefinition" xmlns:rd="http://schemas.microsoft.com/SQLServer/reporting/reportdesigner">
+  <DataSet Name="DataSet1">
+    <Query>
+      <DataSourceReference>BPM</DataSourceReference>
+      <DataSetParameters>
+        <DataSetParameter Name="@STDate">
+          <ReadOnly>false</ReadOnly>
+          <Nullable>false</Nullable>
+          <OmitFromQuery>false</OmitFromQuery>
+          <rd:DbType>Object</rd:DbType>
+        </DataSetParameter>
+        <DataSetParameter Name="@EDDate">
+          <ReadOnly>false</ReadOnly>
+          <Nullable>false</Nullable>
+          <OmitFromQuery>false</OmitFromQuery>
+          <rd:DbType>Object</rd:DbType>
+        </DataSetParameter>
+      </DataSetParameters>
+      <CommandText>Select 
+PRg.txtSerialNumber as '請購單'
+,POg.txtSerialNumber as '採購單'
+,AC1.txtSerialNumber as '驗收/入庫單',AC3.txtSerialNumber as '資產驗收單'
+,PA1b.txtSerialNumber as '採購類請款單'
+From PR_General PRg
+LEFT JOIN PO_General POg On POg.dptPRNumber = PRg.txtSerialNumber
+LEFT JOIN ACC_001 AC1 On AC1.dptPONumber = POg.txtSerialNumber
+LEFT JOIN ACC_003 AC3 On AC3.dptPONumber = POg.txtSerialNumber
+LEFT JOIN PA_001 PA1b On PA1b.iptPONumber = POg.txtSerialNumber
+WHERE 
+(convert(datetime, txtPODate, 121) &gt;= @STDate AND convert(datetime, txtPODate, 121) &lt;= @EDDate)
+UNION ALL
+Select 
+PR3.txtSerialNumber as '請購單'
+,PO3.txtSerialNumber as '採購單'
+,AC1.txtSerialNumber as '驗收/入庫單',AC3.txtSerialNumber as '資產驗收單'
+,PA1b.txtSerialNumber as '採購類請款單'
+From PR_003 PR3
+LEFT JOIN PO_003 PO3 On PO3.dptPRNumber = PR3.txtSerialNumber
+LEFT JOIN ACC_001 AC1 On AC1.dptPONumber = PO3.txtSerialNumber
+LEFT JOIN ACC_003 AC3 On AC3.dptPONumber = PO3.txtSerialNumber
+LEFT JOIN PA_001 PA1b On PA1b.iptPONumber = PO3.txtSerialNumber
+WHERE 
+(convert(datetime, txtPODate, 121) &gt;= @STDate AND convert(datetime, txtPODate, 121) &lt;= @EDDate)
+UNION ALL
+Select 
+PRIT.txtSerialNumber as '請購單'
+,POIT.txtSerialNumber as '採購單'
+,AC1.txtSerialNumber as '驗收/入庫單',AC3.txtSerialNumber as '資產驗收單'
+,PA1b.txtSerialNumber as '採購類請款單'
+From PR_IT PRIT
+LEFT JOIN PO_IT POIT On POIT.dptPRNumber = PRIT.txtSerialNumber
+LEFT JOIN ACC_001 AC1 On AC1.dptPONumber = POIT.txtSerialNumber
+LEFT JOIN ACC_003 AC3 On AC3.dptPONumber = POIT.txtSerialNumber
+LEFT JOIN PA_001 PA1b On PA1b.iptPONumber = POIT.txtSerialNumber
+WHERE 
+(convert(datetime, txtPODate, 121) &gt;= @STDate AND convert(datetime, txtPODate, 121) &lt;= @EDDate)
+Order by '請購單','採購單' desc</CommandText>
+    </Query>
+    <Fields>
+      <Field Name="請購單">
+        <DataField>請購單</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="採購單">
+        <DataField>採購單</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="驗收_入庫單">
+        <DataField>驗收/入庫單</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="資產驗收單">
+        <DataField>資產驗收單</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="採購類請款單">
+        <DataField>採購類請款單</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+    </Fields>
+  </DataSet>
+</SharedDataSet>
